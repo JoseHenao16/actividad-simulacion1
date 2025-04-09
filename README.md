@@ -70,10 +70,52 @@ This program, [`process-run.py`](process-run.py), allows you to see how process 
 2. Now run with these flags: `./process-run.py -l 4:100,1:0`. These flags specify one process with 4 instructions (all to use the CPU), and one that simply issues an I/O and waits for it to be done. How long does it take to complete both processes? Use `-c` and `-p` to find out if you were right.
 
    <details>
-   <summary>Answer</summary>
-   Coloque aqui su respuerta
-   </details>
-   <br>
+   <summary>Respuesta</summary>
+   
+   El comando ejecutado fue:
+
+   ```bash
+   python process-run.py -l 4:100,1:0 -c -p
+
+   Se crean dos procesos:
+      PID 0 ejecuta 4 instrucciones de CPU (100% CPU)
+      PID 1 tiene una única instrucción de E/S (0% CPU)
+
+   Cálculo o análisis:
+      PID 0 corre primero, ocupando la CPU del tick 1 al 4 con instrucciones de CPU
+
+      En el tick 5, PID 0 termina (DONE) y el planificador permite que PID 1 ejecute su instrucción de E/S (RUN:io)
+
+      PID 1 queda bloqueado por 5 ticks (de 6 a 10)
+
+      Y por ultimo en el tick 11, PID 1 se desbloquea (RUN:io_done) y termina.
+
+   Resultado:
+      Time        PID: 0        PID: 1           CPU           IOs
+      1        RUN:cpu         READY             1
+      2        RUN:cpu         READY             1
+      3        RUN:cpu         READY             1
+      4        RUN:cpu         READY             1
+      5           DONE        RUN:io             1
+      6           DONE       BLOCKED                           1
+      7           DONE       BLOCKED                           1
+      8           DONE       BLOCKED                           1
+      9           DONE       BLOCKED                           1
+      10           DONE       BLOCKED                           1
+      11*          DONE   RUN:io_done             1
+
+   Resultado de la simulación:
+      Stats: Total Time 11
+      Stats: CPU Busy 6 (54.55%)
+      Stats: IO Busy  5 (45.45%)
+
+   Conclusión:
+      Los dos procesos terminan su ejecución en 11 ciclos.
+      Durante ese tiempo, la CPU estuvo trabajando en 6 ciclos y el dispositivo de E/S en los otros 5.
+
+      Esto es lógico, porque uno de los procesos hizo una operación de E/S que tardó 5 ciclos en completarse. Mientras tanto, no había más procesos listos para usar la CPU, así que el sistema tuvo que esperar a que la E/S terminara antes de poder finalizar la simulación.
+
+</details> <br> ```
 
 3. Switch the order of the processes: `-l 1:0,4:100`. What happens now? Does switching the order matter? Why? (As always, use `-c` and `-p` to see if you were right)
 
