@@ -26,46 +26,46 @@ This program, [`process-run.py`](process-run.py), allows you to see how process 
    <details>
    <summary>Respuesta</summary>
    
-El comando ejecutado fue:
+   El comando ejecutado fue:
 
-```bash
-python process-run.py -l 5:100,5:100 -c -p   
+   ```bash
+   python process-run.py -l 5:100,5:100 -c -p   
 
-Lo que se esperaba para cada proceso está configurado para ejecutar 5 instrucciones, y todas son del tipo que usa solo la CPU (es decir, no hacen operaciones de entrada/salida como leer un archivo o esperar datos).
+   Lo que se esperaba para cada proceso está configurado para ejecutar 5 instrucciones, y todas son del tipo que usa solo la CPU (es decir, no hacen operaciones de entrada/salida como leer un archivo o esperar datos).
 
-Como los dos procesos solo usan la CPU y no se detienen esperando nada, siempre hay al menos uno listo para trabajar. Por eso, se espera que la CPU esté ocupada todo el tiempo mientras se ejecutan.
+   Como los dos procesos solo usan la CPU y no se detienen esperando nada, siempre hay al menos uno listo para trabajar. Por eso, se espera que la CPU esté ocupada todo el tiempo mientras se ejecutan.
 
-Calculos:
-   Instrucciones totales: 5 (Proceso 0) + 5 (Proceso 1) = 10
-   No hay E/S → No hay tiempo de inactividad
-   Tiempo total = 10 ciclos
-   Tiempo de CPU ocupada = 10 ciclos
+   Calculos:
+      Instrucciones totales: 5 (Proceso 0) + 5 (Proceso 1) = 10
+      No hay E/S → No hay tiempo de inactividad
+      Tiempo total = 10 ciclos
+      Tiempo de CPU ocupada = 10 ciclos
 
-Utilización CPU = (Tiempo ocupado) / (Tiempo total) = 10 / 10 = 100%
+   Utilización CPU = (Tiempo ocupado) / (Tiempo total) = 10 / 10 = 100%
 
-Resultado:
+   Resultado:
 
-   Time        PID: 0        PID: 1           CPU           IOs
-   1        RUN:cpu         READY             1
-   2        RUN:cpu         READY             1
-   3        RUN:cpu         READY             1
-   4        RUN:cpu         READY             1
-   5        RUN:cpu         READY             1
-   6           DONE       RUN:cpu             1
-   7           DONE       RUN:cpu             1
-   8           DONE       RUN:cpu             1
-   9           DONE       RUN:cpu             1
-   10           DONE       RUN:cpu             1
+      Time        PID: 0        PID: 1           CPU           IOs
+      1        RUN:cpu         READY             1
+      2        RUN:cpu         READY             1
+      3        RUN:cpu         READY             1
+      4        RUN:cpu         READY             1
+      5        RUN:cpu         READY             1
+      6           DONE       RUN:cpu             1
+      7           DONE       RUN:cpu             1
+      8           DONE       RUN:cpu             1
+      9           DONE       RUN:cpu             1
+      10           DONE       RUN:cpu             1
 
-Resultado de la simulación:
-   Stats: Total Time 10
-   Stats: CPU Busy 10 (100.00%)
-   Stats: IO Busy  0 (0.00%)
+   Resultado de la simulación:
+      Stats: Total Time 10
+      Stats: CPU Busy 10 (100.00%)
+      Stats: IO Busy  0 (0.00%)
 
-Conclusión:
-   La utilización de la CPU es del 100%, como se esperaba. La CPU estuvo completamente ocupada ya que no hubo operaciones de entrada/salida que provocaran esperas o cambios de contexto.
+   Conclusión:
+      La utilización de la CPU es del 100%, como se esperaba. La CPU estuvo completamente ocupada ya que no hubo operaciones de entrada/salida que provocaran esperas o cambios de contexto.
 
-</details> ```
+</details> <br> ```
 
 2. Now run with these flags: `./process-run.py -l 4:100,1:0`. These flags specify one process with 4 instructions (all to use the CPU), and one that simply issues an I/O and waits for it to be done. How long does it take to complete both processes? Use `-c` and `-p` to find out if you were right.
 
