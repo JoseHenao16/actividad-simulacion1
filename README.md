@@ -132,13 +132,11 @@ This program, [`process-run.py`](process-run.py), allows you to see how process 
       PID 1: 4 instrucciones de CPU (100% CPU)
    
    Cálculo o análisis:
-      PID 0 ejecuta la instrucción de E/S en el tick 1, luego entra en estado bloqueado durante 5 ticks (del 2 al 6).
+      El proceso PID 0 inicia y rápidamente se bloquea por E/S
 
-      Mientras PID 0 está bloqueado, PID 1 comienza a usar la CPU desde el tick 2 al 5.
+      A diferencia de cuando PID 1 era el primero (ver punto 2), esta vez el sistema aprovecha el tiempo mientras PID 0 está bloqueado, ejecutando el proceso que realiza CPU (PID 1)
 
-      En el tick 6, PID 1 termina.
-
-      En el tick 7, PID 0 se desbloquea (RUN:io_done) y finaliza.
+      Cuando finaliza la E/S, el proceso PID 0 se completa inmediatamente.
 
    Resultado:
       Time        PID: 0        PID: 1           CPU           IOs
@@ -156,19 +154,60 @@ This program, [`process-run.py`](process-run.py), allows you to see how process 
       Stats: IO Busy  5 (71.43%)
 
    Conclusión:
-      Sí, el orden en que se ejecutan los procesos sí influye.
-      Si el proceso que hace E/S se ejecuta primero, mientras espera que termine su operación, el otro proceso (que solo usa CPU) puede aprovechar ese tiempo para trabajar. Así, ambos procesos avanzan al mismo tiempo y el sistema termina más rápido, en solo 7 ciclos en lugar de 11.
-
-      Esto muestra cómo un buen manejo del orden de los procesos puede hacer que el sistema sea más eficiente, usando mejor el tiempo disponible en vez de dejar recursos esperando sin hacer nada.
+      Sí, el orden en que se ejecutan los procesos tiene un impacto importante.
+      Al poner primero el proceso que realiza E/S, el sistema puede aprovechar el tiempo en que ese proceso está bloqueado para ejecutar el proceso que usa CPU. Esto permite que ambos procesos avancen en paralelo, usando mejor los recursos disponibles
+      A diferencia del caso anterior (-l 4:100,1:0), donde hubo varios ciclos en los que la CPU no hizo nada, en este escenario se logró una utilización mucho más eficiente tanto de la CPU como del dispositivo de E/S.
 </details> <br> ```
 
 4. We'll now explore some of the other flags. One important flag is `-S`, which determines how the system reacts when a process issues an I/O. With the flag set to SWITCH ON END, the system will NOT switch to another process while one is doing I/O, instead waiting until the process is completely finished. What happens when you run the following two processes (`-l 1:0,4:100 -c -S SWITCH ON END`), one doing I/O and the other doing CPU work?
 
    <details>
-   <summary>Answer</summary>
-   Coloque aqui su respuerta
-   </details>
-   <br>
+   <summary>Respuesta</summary>
+   
+    El comando ejecutado fue:
+
+   ```bash
+   python process-run.py -l 1:0,4:100 -c -p -S SWITCH_ON_END
+
+   Se ejecutan dos procesos:
+      PID 0: 1 instrucción de E/S
+      PID 1: 4 instrucciones de CPU
+
+   La opción -S SWITCH ON END le dice al sistema que no cambie de proceso cuando uno inicia una operación de E/S. En lugar de hacer un cambio inmediato, el sistema espera a que ese proceso termine por completo, incluso si queda bloqueado por la E/S.
+
+   Cálculo o análisis:
+      El proceso PID 0 comienza con una instrucción de E/S y entra en estado bloqueado desde el tiempo 2 al 6
+
+      Aunque PID 1 está listo para ejecutarse, el sistema no lo selecciona debido a la política SWITCH ON END
+
+      La CPU permanece inactiva durante 5 unidades de tiempo, reduciendo la eficiencia general del sistema
+
+      Una vez que termina la E/S (tick 7), se ejecuta PID 1 de forma continua.
+
+   Resultado:
+      Time        PID: 0        PID: 1           CPU           IOs
+      1         RUN:io         READY             1
+      2        BLOCKED         READY                           1
+      3        BLOCKED         READY                           1
+      4        BLOCKED         READY                           1
+      5        BLOCKED         READY                           1
+      6        BLOCKED         READY                           1
+      7*   RUN:io_done         READY             1
+      8           DONE       RUN:cpu             1
+      9           DONE       RUN:cpu             1
+      10           DONE       RUN:cpu             1
+      11           DONE       RUN:cpu             1
+
+   Resultado de la simulación:
+      Stats: Total Time 11
+      Stats: CPU Busy 6 (54.55%)
+      Stats: IO Busy  5 (45.45%)
+
+   Conclusión:
+      Sí importa la política de cambio de procesos durante E/S
+      En este caso, SWITCH ON END provoca tiempo ocioso innecesario de CPU, lo cual reduce la utilización total (54.55%)
+      Una política más eficiente permitiría cambiar al proceso PID 1 mientras PID 0 está bloqueado, maximizando el uso del procesador.
+</details> <br> ```
 
 5. Now, run the same processes, but with the switching behavior set to switch to another process whenever one is WAITING for I/O (`-l 1:0,4:100 -c -S SWITCH ON IO`). What happens now? Use `-c` and `-p` to confirm that you are right.
 
