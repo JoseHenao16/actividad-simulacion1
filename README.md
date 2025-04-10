@@ -251,10 +251,42 @@ This program, [`process-run.py`](process-run.py), allows you to see how process 
 6. One other important behavior is what to do when an I/O completes. With `-I IO RUN LATER`, when an I/O completes, the process that issued it is not necessarily run right away; rather, whatever was running at the time keeps running. What happens when you run this combination of processes? (`./process-run.py -l 3:0,5:100,5:100,5:100 -S SWITCH ON IO -c -p -I IO RUN LATER`) Are system resources being effectively utilized?
 
    <details>
-   <summary>Answer</summary>
-   Coloque aqui su respuerta
-   </details>
-   <br>
+   <summary>Respuesta</summary>
+
+   El comando ejecutado fue:
+
+   ```bash
+   python process-run.py -l 3:0,5:100,5:100,5:100 -S SWITCH_ON_IO -c -p -I IO_RUN_LATER
+
+   Cálculo o análisis:
+      El proceso PID 0 inicia con una instrucción de E/S, y queda bloqueado
+
+      Mientras tanto, PID 1 (proceso de CPU) toma control y ejecuta durante todo el tiempo que PID 0 está esperando
+
+      Aunque la E/S termina en el tiempo 6, PID 0 no interrumpe inmediatamente porque usamos la opción IO_RUN_LATER. Solo al terminar PID 1 en el tiempo 6, PID 0 puede retomar en el tiempo 7.
+
+   Resultado:
+      Time        PID: 0        PID: 1           CPU           IOs
+      1         RUN:io         READY             1
+      2        BLOCKED       RUN:cpu             1             1
+      3        BLOCKED       RUN:cpu             1             1
+      4        BLOCKED       RUN:cpu             1             1
+      5        BLOCKED       RUN:cpu             1             1
+      6        BLOCKED          DONE                           1
+      7*   RUN:io_done          DONE             1
+
+   Resultado de la simulación:
+      Stats: Total Time 7
+      Stats: CPU Busy 6 (85.71%)
+      Stats: IO Busy  5 (71.43%)
+
+   Conclusiones:
+      Sí, en este caso el sistema está aprovechando bien sus recursos:
+      La CPU trabaja durante casi toda la ejecución, sin quedarse inactiva por mucho tiempo
+      El dispositivo de E/S también se mantiene en uso durante una buena parte del procesos
+      Este tipo de comportamiento es ideal cuando se busca evitar cambios de contexto innecesarios y mantener un buen nivel de rendimiento en el sistema.
+
+</details> <br> ```
 
 7. Now run the same processes, but with `-I IO RUN IMMEDIATE` set, which immediately runs the process that issued the I/O. How does this behavior differ? Why might running a process that just completed an I/O again be a good idea?
 
