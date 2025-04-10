@@ -291,10 +291,58 @@ This program, [`process-run.py`](process-run.py), allows you to see how process 
 7. Now run the same processes, but with `-I IO RUN IMMEDIATE` set, which immediately runs the process that issued the I/O. How does this behavior differ? Why might running a process that just completed an I/O again be a good idea?
 
    <details>
-   <summary>Answer</summary>
-   Coloque aqui su respuerta
-   </details>
-   <br>
+   <summary>Respuesta</summary>
+   
+   El comando ejecutado fue:
+
+   ```bash
+   python process-run.py -l 3:0,5:100,5:100,5:100 -S SWITCH_ON_IO -c -p -I IO_RUN_IMMEDIATE
+
+   Cálculo o análisis:
+      Al activar IO_RUN_IMMEDIATE, el sistema le da prioridad inmediata al proceso que ha terminado su operación de entrada/salida (E/S)
+
+      Esto se refleja en los tiempos 7, 14 y 21, donde el proceso que completó la E/S pasa inmediatamente a ejecutarse
+
+      Gracias a este comportamiento, el proceso no tiene que esperar en cola mientras otros procesos CPU terminan su trabajo.
+
+   Resultado:
+      Time        PID: 0        PID: 1        PID: 2        PID: 3           CPU           IOs
+      1         RUN:io         READY         READY         READY             1
+      2        BLOCKED       RUN:cpu         READY         READY             1             1
+      3        BLOCKED       RUN:cpu         READY         READY             1             1
+      4        BLOCKED       RUN:cpu         READY         READY             1             1
+      5        BLOCKED       RUN:cpu         READY         READY             1             1
+      6        BLOCKED       RUN:cpu         READY         READY             1             1
+      7*   RUN:io_done          DONE         READY         READY             1
+      8         RUN:io          DONE         READY         READY             1
+      9        BLOCKED          DONE       RUN:cpu         READY             1             1
+      10        BLOCKED          DONE       RUN:cpu         READY             1             1
+      11        BLOCKED          DONE       RUN:cpu         READY             1             1
+      12        BLOCKED          DONE       RUN:cpu         READY             1             1
+      13        BLOCKED          DONE       RUN:cpu         READY             1             1
+      14*   RUN:io_done          DONE          DONE         READY             1
+      15         RUN:io          DONE          DONE         READY             1
+      16        BLOCKED          DONE          DONE       RUN:cpu             1             1
+      17        BLOCKED          DONE          DONE       RUN:cpu             1             1
+      18        BLOCKED          DONE          DONE       RUN:cpu             1             1
+      19        BLOCKED          DONE          DONE       RUN:cpu             1             1
+      20        BLOCKED          DONE          DONE       RUN:cpu             1             1
+      21*   RUN:io_done          DONE          DONE          DONE             1
+
+   Resultado de la simulación:
+      Stats: Total Time 21
+      Stats: CPU Busy 21 (100.00%)
+      Stats: IO Busy  15 (71.43%)
+
+   ¿Por qué es una buena idea?
+      Esto ayuda a que el sistema sea más eficiente, ya que evita que los procesos interactivos o que dependen de E/S tengan que esperar más de lo necesario.
+      También mejora el tiempo de respuesta en entornos multitarea, lo que se traduce en una mejor experiencia para el usuario.
+      Además, permite que tanto la CPU como los dispositivos de E/S se mantengan activos la mayor parte del tiempo, como se refleja en esta simulación con un uso del 100% de la CPU.
+
+   Conclusiones:
+      Activar IO_RUN_IMMEDIATE hace que el sistema responda más rápido, ya que da prioridad a los procesos que acaban de terminar una operación de E/S. Esto reduce el tiempo que esos procesos pasan esperando y mejora el uso de los recursos, aumentando el rendimiento general del sistema.
+      
+</details> <br> ```
 
 ### Criterios de evaluación
 
