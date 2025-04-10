@@ -120,10 +120,47 @@ This program, [`process-run.py`](process-run.py), allows you to see how process 
 3. Switch the order of the processes: `-l 1:0,4:100`. What happens now? Does switching the order matter? Why? (As always, use `-c` and `-p` to see if you were right)
 
    <details>
-   <summary>Answer</summary>
-   Coloque aqui su respuerta
-   </details>
-   <br>
+   <summary>Respuesta</summary>
+   
+   El comando ejecutado fue:
+
+   ```bash
+   python process-run.py -l 1:0,4:100 -c -p
+
+   Se crean dos procesos, pero ahora en un orden inverso:
+      PID 0: una instrucción de E/S (0% CPU)
+      PID 1: 4 instrucciones de CPU (100% CPU)
+   
+   Cálculo o análisis:
+      PID 0 ejecuta la instrucción de E/S en el tick 1, luego entra en estado bloqueado durante 5 ticks (del 2 al 6).
+
+      Mientras PID 0 está bloqueado, PID 1 comienza a usar la CPU desde el tick 2 al 5.
+
+      En el tick 6, PID 1 termina.
+
+      En el tick 7, PID 0 se desbloquea (RUN:io_done) y finaliza.
+
+   Resultado:
+      Time        PID: 0        PID: 1           CPU           IOs
+      1         RUN:io         READY             1
+      2        BLOCKED       RUN:cpu             1             1
+      3        BLOCKED       RUN:cpu             1             1
+      4        BLOCKED       RUN:cpu             1             1
+      5        BLOCKED       RUN:cpu             1             1
+      6        BLOCKED          DONE                           1
+      7*   RUN:io_done          DONE             1
+   
+   Resultado de la simulación:
+      Stats: Total Time 7
+      Stats: CPU Busy 6 (85.71%)
+      Stats: IO Busy  5 (71.43%)
+
+   Conclusión:
+      Sí, el orden en que se ejecutan los procesos sí influye.
+      Si el proceso que hace E/S se ejecuta primero, mientras espera que termine su operación, el otro proceso (que solo usa CPU) puede aprovechar ese tiempo para trabajar. Así, ambos procesos avanzan al mismo tiempo y el sistema termina más rápido, en solo 7 ciclos en lugar de 11.
+
+      Esto muestra cómo un buen manejo del orden de los procesos puede hacer que el sistema sea más eficiente, usando mejor el tiempo disponible en vez de dejar recursos esperando sin hacer nada.
+</details> <br> ```
 
 4. We'll now explore some of the other flags. One important flag is `-S`, which determines how the system reacts when a process issues an I/O. With the flag set to SWITCH ON END, the system will NOT switch to another process while one is doing I/O, instead waiting until the process is completely finished. What happens when you run the following two processes (`-l 1:0,4:100 -c -S SWITCH ON END`), one doing I/O and the other doing CPU work?
 
