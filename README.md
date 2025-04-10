@@ -1,9 +1,9 @@
 # Actividad de seguimiento - Simulación 1
 
-| Integrante                   | correo              | usuario github          |
-| ---------------------------- | ------------------- | ----------------------- |
-| Nombre completo integrante 1 | correo integrante 1 | gihub user integrante 1 |
-| Nombre completo integrante 2 | correo integrante 2 | gihub user integrante 2 |
+| Integrante                | correo                  | usuario github          |
+| ------------------------- | ----------------------- | ----------------------- |
+| José David Henao Gallego  | jose.henao1@udea.edu.co | JoseHenao16             |
+| Nombre comp. integrante 2 | correo integrante 2     | gihub user integrante 2 |
 
 ## Instrucciones
 
